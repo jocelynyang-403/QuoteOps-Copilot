@@ -67,7 +67,7 @@ Required test: `tests/test_crm_invariant.py::test_unapproved_record_never_writes
 
 ```text
 quoteops-copilot/
-├── implementation-phase-plan-copy.md     # This English plan
+├── implementation-phase-plan.md     # This English plan
 ├── README.md
 ├── pyproject.toml
 ├── .env.example
