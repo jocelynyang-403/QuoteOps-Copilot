@@ -1,0 +1,10 @@
+[
+  {"sku": "PUMP-X200", "name": "X200 End-Suction Centrifugal Pump", "family": "pumps", "description": "3x2 end-suction centrifugal pump, ductile iron casing, 200 GPM rated, 7.5 HP frame mount", "active": true},
+  {"sku": "PUMP-X150", "name": "X150 End-Suction Centrifugal Pump", "family": "pumps", "description": "2x1.5 end-suction centrifugal pump, cast iron casing, 150 GPM rated, 5 HP frame mount", "active": true},
+  {"sku": "SEAL-MK200", "name": "X200 Mechanical Seal Kit", "family": "seals", "description": "Replacement mechanical seal kit for X200 pumps, carbon/silicon carbide faces, Viton elastomers", "active": true},
+  {"sku": "VALVE-BV50", "name": "2in Full-Port Ball Valve", "family": "valves", "description": "2 inch full-port stainless steel ball valve, 1000 WOG, threaded NPT ends", "active": true},
+  {"sku": "VALVE-GV80", "name": "3in Flanged Gate Valve", "family": "valves", "description": "3 inch cast steel gate valve, Class 150 flanged, rising stem", "active": true},
+  {"sku": "MOTOR-M75", "name": "7.5 HP TEFC Motor", "family": "motors", "description": "7.5 HP 1800 RPM TEFC motor, 213T frame, 230/460V three-phase, premium efficiency", "active": true},
+  {"sku": "MOTOR-M15", "name": "15 HP TEFC Motor", "family": "motors", "description": "15 HP 1800 RPM TEFC motor, 254T frame, 230/460V three-phase, premium efficiency", "active": true},
+  {"sku": "STRAINER-BS30", "name": "3in Basket Strainer", "family": "strainers", "description": "3 inch simplex basket strainer, cast iron body, Class 125 flanged, 1/8 inch perforated basket", "active": true}
+]

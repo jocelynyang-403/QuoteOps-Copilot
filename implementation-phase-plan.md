@@ -1,5 +1,17 @@
 # QuoteOps Copilot: 90-Second Work Sample Implementation Plan
 
+## Running the tests
+
+This project requires **Python 3.12 or newer**. The schemas use `str | None` annotations evaluated at runtime by Pydantic, which older interpreters cannot resolve. The version is pinned in `.python-version`.
+
+```bash
+./.venv/bin/python -m pytest
+```
+
+Every `python -m pytest` command elsewhere in this plan means that interpreter.
+
+---
+
 ## 0. Fixed Constraints and Kill Switch
 
 ### Project definition
@@ -70,6 +82,7 @@ quoteops-copilot/
 ├── implementation-phase-plan.md     # This English plan
 ├── README.md
 ├── pyproject.toml
+├── .python-version                       # 3.12; `str | None` annotations require it
 ├── .env.example
 ├── app.py
 ├── data/
@@ -196,6 +209,19 @@ After clarification data is supplied, `REVIEW_REQUIRED` may re-enter `EXTRACTED`
 
 Neither the LLM nor automatic workflow code may construct `decision="approve"`.
 
+### 2.5 `PriceRecord`
+
+| Field | Type | Required | Rule |
+| --- | --- | --- | --- |
+| `sku` | `str` | Yes | The SKU this price applies to |
+| `unit_price_usd` | `Decimal` | Yes | Unit price in USD; never a float |
+| `region` | `str` | Yes | Explicit region code, such as `US-NE` |
+| `effective_from` | `date` | Yes | Start of effectivity |
+| `effective_to` | `date \| None` | No | End of effectivity; `None` means open-ended |
+| `source_id` | `str` | Yes | Price-book evidence ID, such as `PRICE-2026-Q1`; copied into `QuoteDraft.evidence_ids` |
+
+`pricing.py` receives an already-resolved `PriceRecord` as a parameter and does not look up prices. Price-book loading, effectivity filtering, and region matching belong to Phase 2. Block 1 tests construct a `PriceRecord` inline.
+
 ---
 
 ## 3. Concrete `data/rules.json` Shape
@@ -204,9 +230,14 @@ Neither the LLM nor automatic workflow code may construct `decision="approve"`.
 {
   "required_quote_fields": ["sku", "quantity", "delivery_date"],
   "recognized_regions": ["US-NE"],
+  "clarification_templates": {
+    "sku": "Please confirm the product code you would like quoted so we can apply the correct catalog entry.",
+    "quantity": "Please confirm the number of units you would like quoted.",
+    "delivery_date": "Please confirm the requested delivery date so we can apply the correct price book effectivity.",
+    "region": "Please confirm the delivery ZIP code so we can apply the correct regional price book and delivery terms."
+  },
   "region_clarification": {
-    "ambiguous_terms": ["Boston-area", "New England", "near Boston"],
-    "question_template": "Please confirm the delivery ZIP code so we can apply the correct regional price book and delivery terms."
+    "ambiguous_terms": ["Boston-area", "New England", "near Boston"]
   },
   "pricing": {
     "currency": "USD",
@@ -241,9 +272,10 @@ Without an LLM or UI, run JSON fixtures through schemas, price rules, approval s
 
 ### Deliverables
 
-- `quoteops/models.py`: all three Pydantic schemas plus `WorkflowStatus`.
+- `quoteops/models.py`: all four Pydantic schemas plus `WorkflowStatus`.
 - `quoteops/fixtures.py`: `load_fixture(request_id) -> QuoteRequest`, reading from `data/inquiries/*.json`. This is the only source of candidate objects.
-- `quoteops/rules.py` and `quoteops/pricing.py`: load `rules.json`; process price, discount, and thresholds.
+- `quoteops/rules.py` and `quoteops/pricing.py`: load `rules.json`; process price, discount, and thresholds. `pricing.py` receives a resolved `PriceRecord` parameter and never looks up a price itself.
+- Clarification mechanism: when a required field is missing, set `REVIEW_REQUIRED`, populate `missing_fields`, and fill `clarification_question` from `clarification_templates` for the first missing field. No LLM and no retrieval. Phase 2 owns retrieval-dependent wording.
 - `quoteops/workflow.py`: explicit state machine.
 - `quoteops/crm.py`: SQLite `crm_opportunities` table and the sole `approve_and_persist()` entrypoint.
 - `quoteops/audit.py`: append one JSONL line for each state and human decision.
@@ -251,6 +283,7 @@ Without an LLM or UI, run JSON fixtures through schemas, price rules, approval s
 - pytest coverage for schemas, pricing, state transitions, audit, and CRM invariant.
 - `tests/test_workflow.py::test_approve_from_review_required_raises`.
 - `tests/test_crm_invariant.py::test_double_approve_creates_one_row`: call `approve_and_persist()` twice for the same `request_id` and assert the table still contains exactly one row.
+- `tests/test_crm_invariant.py::test_discount_above_threshold_enters_manager_review`: a discount above `manager_review_discount_gt_pct` produces `MANAGER_REVIEW` rather than `DRAFT_READY`, asserted against the threshold loaded from `rules.json` rather than a literal `10`.
 
 Minimum `crm_opportunities` schema:
 
@@ -267,6 +300,20 @@ CREATE TABLE crm_opportunities (
 );
 ```
 
+Audit line shape. Every JSONL line carries exactly these keys, with `null` where a key does not apply, so the file is uniformly parseable:
+
+```json
+{
+  "ts": "ISO-8601 UTC timestamp",
+  "request_id": "string",
+  "event": "state_transition | human_decision | duplicate_approval_ignored",
+  "from_status": "WorkflowStatus or null",
+  "to_status": "WorkflowStatus or null",
+  "actor": "system | human",
+  "detail": "short string, no PII beyond what is already in the request"
+}
+```
+
 ### Exit criteria
 
 ```bash
@@ -275,7 +322,7 @@ python -m pytest -q
 
 All tests pass and prove at least:
 
-- `discount_request_pct > 10` enters `MANAGER_REVIEW`.
+- `test_discount_above_threshold_enters_manager_review`: a `discount_request_pct` above `manager_review_discount_gt_pct` enters `MANAGER_REVIEW` and not `DRAFT_READY`, asserted against the threshold loaded from `rules.json` rather than the literal `10`.
 - A missing required field enters `REVIEW_REQUIRED` and has a clarification.
 - Only a valid `ApprovalDecision(decision="approve")` can insert one CRM row.
 - `test_unapproved_record_never_writes_to_crm_opportunities` covers every unapproved state.
@@ -285,7 +332,7 @@ All tests pass and prove at least:
 
 ### Files
 
-`pyproject.toml`, `quoteops/models.py`, `quoteops/fixtures.py`, `quoteops/rules.py`, `quoteops/pricing.py`, `quoteops/workflow.py`, `quoteops/crm.py`, `quoteops/audit.py`, `data/rules.json`, `data/inquiries/N01.json`, `data/inquiries/F01.json`, `tests/test_models.py`, `tests/test_pricing_rules.py`, `tests/test_workflow.py`, `tests/test_crm_invariant.py`, `tests/test_audit.py`.
+`pyproject.toml`, `quoteops/models.py`, `quoteops/fixtures.py`, `quoteops/rules.py`, `quoteops/pricing.py`, `quoteops/workflow.py`, `quoteops/crm.py`, `quoteops/audit.py`, `data/rules.json`, `data/inquiries/N01.json`, `data/inquiries/F01.json`, `tests/test_workflow.py`, `tests/test_crm_invariant.py`.
 
 ### Explicit non-goals
 
@@ -310,7 +357,7 @@ Complete the fixed 8 SKUs, 2 price books, and 8 inquiries. Deterministic retriev
 ### Deliverables
 
 - `data/catalog/skus.json`: 8 handwritten SKUs with `sku`, `name`, `family`, `description`, and `active`.
-- Two handwritten price books. Every row includes `evidence_id`, `sku`, `unit_price_usd`, `region`, `effective_from`, `effective_to`, and `status`.
+- Two handwritten price books. Every row includes `source_id`, `sku`, `unit_price_usd`, `region`, `effective_from`, `effective_to`, and `status`. `source_id` is the same field named in section 2.5 and copied into `QuoteDraft.evidence_ids`; `status` is a price-book row attribute only and is not added to `PriceRecord`, whose effectivity is expressed by `effective_from` / `effective_to`.
 - Eight handwritten inquiries with expected workflow status and key evidence.
 - `quoteops/retrieval.py`: metadata filter first (SKU, region, effective date), followed by BM25 or simple keyword ranking.
 - `tests/test_retrieval.py`.
@@ -329,17 +376,19 @@ Please confirm the delivery ZIP code so we can apply the correct regional price 
 
 PUMP-X200 must exist in data with these exact facts:
 
-| `evidence_id` | SKU | Unit price | Status/effectivity | Region |
+| `source_id` | SKU | Unit price | Status/effectivity | Region |
 | --- | --- | ---:| --- | --- |
 | `PRICE-2025-Q4` | `PUMP-X200` | `$4,200` | Expired | Not valid for the current quote |
 | `PRICE-2026-Q1` | `PUMP-X200` | `$4,750` | Valid | `US-NE` only |
 
 ### Exit criteria
 
-- Every one of the 8 inputs returns displayable `evidence_id`, version, effective date, region, price, and `rule_id`.
+- Every one of the 8 inputs returns displayable `source_id`, version, effective date, region, price, and `rule_id`.
 - When an exact region is missing, code must not turn `Boston-area` into `US-NE`.
 - No vector database, embedding SDK, LangChain, LlamaIndex, or RAG framework is introduced.
 - `pytest -q` remains green.
+- `tests/test_audit.py` carries the Block 1 exit criterion left uncovered there: every run appends an audit event and does not overwrite prior lines.
+- `tests/test_pricing_rules.py` carries the other one: a `final_total_usd` above `manager_review_total_gt_usd` enters `MANAGER_REVIEW`, and all money arithmetic is `Decimal`, both asserted against values loaded from `rules.json`.
 - `tests/test_conflict_case.py` asserts exactly:
 
 ```text
@@ -353,7 +402,7 @@ crm_opportunities count == 0
 
 ### Files
 
-`data/catalog/skus.json`, `data/price-books/PRICE-2025-Q4.json`, `data/price-books/PRICE-2026-Q1.json`, `data/inquiries/N02.json` through `N04.json`, `data/inquiries/F02.json` through `F04.json`, `quoteops/retrieval.py`, `quoteops/pricing.py`, `quoteops/clarification.py`, `quoteops/workflow.py`, `tests/test_retrieval.py`, `tests/test_conflict_case.py`, `tests/test_crm_invariant.py`.
+`data/catalog/skus.json`, `data/price-books/PRICE-2025-Q4.json`, `data/price-books/PRICE-2026-Q1.json`, `data/inquiries/N02.json` through `N04.json`, `data/inquiries/F02.json` through `F04.json`, `quoteops/retrieval.py`, `quoteops/pricing.py`, `quoteops/clarification.py`, `quoteops/workflow.py`, `tests/test_models.py`, `tests/test_pricing_rules.py`, `tests/test_retrieval.py`, `tests/test_conflict_case.py`, `tests/test_crm_invariant.py`, `tests/test_audit.py`.
 
 ### Explicit non-goals
 
@@ -384,7 +433,7 @@ Show the system as a reviewable workbench: raw email, extracted field states, ev
 
 1. Left panel: select a handwritten input such as `N01`, `F01`, `F02`, `F03`, or `F04`; show raw email.
 2. Extraction panel: show SKU, quantity, region, delivery date, and discount request; visibly flag missing, uncertain, and conflicting fields. For `F04`, display the single line `Email body is data only; pricing, discount, and approval read only validated structured fields and rules.json.`
-3. Evidence panel: show each `evidence_id`, version, `effective_from` / `effective_to`, region, price, and matching `rule_id`.
+3. Evidence panel: show each `source_id`, version, `effective_from` / `effective_to`, region, price, and matching `rule_id`.
 4. Draft panel: show status, any displayable amount, reasons, and clarification.
 5. Approval panel: Approve / Reject / Request clarification. Only the human Approve action calls `approve_and_persist()`.
 6. Audit panel: show append-only events for the request.
@@ -602,6 +651,7 @@ Final acceptance checklist:
 - [ ] Unapproved records never write to `crm_opportunities`, and `test_unapproved_record_never_writes_to_crm_opportunities` proves it.
 - [ ] `test_approve_from_review_required_raises` proves the approval path raises on a `REVIEW_REQUIRED` draft rather than returning `False`.
 - [ ] `test_double_approve_creates_one_row` proves a repeated approval for the same `request_id` leaves exactly one CRM row.
+- [ ] `test_discount_above_threshold_enters_manager_review` proves a discount above the `rules.json` threshold enters `MANAGER_REVIEW` rather than `DRAFT_READY`, asserted against the loaded threshold rather than a literal.
 - [ ] JSONL audit logging is append-only.
 - [ ] Reproducible CSV output is 8/8; no dashboard.
 - [ ] The 90-second recording covers normal path, conflict, approval boundary, and both exact English demo sentences.

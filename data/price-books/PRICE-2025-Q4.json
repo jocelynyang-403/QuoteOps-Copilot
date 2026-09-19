@@ -1,0 +1,10 @@
+[
+  {"evidence_id": "PRICE-2025-Q4", "sku": "PUMP-X200",     "unit_price_usd": "4200.00", "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "PUMP-X150",     "unit_price_usd": "3100.00", "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "SEAL-MK200",    "unit_price_usd": "310.00",  "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "VALVE-BV50",    "unit_price_usd": "185.00",  "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "VALVE-GV80",    "unit_price_usd": "640.00",  "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "MOTOR-M75",     "unit_price_usd": "1380.00", "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "MOTOR-M15",     "unit_price_usd": "2250.00", "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"},
+  {"evidence_id": "PRICE-2025-Q4", "sku": "STRAINER-BS30", "unit_price_usd": "520.00",  "region": "ALL", "effective_from": "2025-10-01", "effective_to": "2025-12-31", "status": "expired"}
+]

@@ -1,0 +1,13 @@
+{
+  "request_id": "F01",
+  "raw_email": "Hello - please send us a quote for the PUMP-X200 for our US-NE facility, needed by 20 March 2026. Let me know the pricing and we'll go from there. Regards, Marcus Ellery, Operations",
+  "customer_name": "Marcus Ellery",
+  "sku": "PUMP-X200",
+  "quantity": null,
+  "region": "US-NE",
+  "delivery_date": "2026-03-20",
+  "discount_request_pct": null,
+  "uncertain_fields": [],
+  "conflicts": [],
+  "source": "fixture"
+}

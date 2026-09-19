@@ -1,0 +1,13 @@
+{
+  "request_id": "N01",
+  "raw_email": "Hi - we're expanding the intake line at our Springfield MA plant and need pricing on 3 units of PUMP-X200. Delivery region is US-NE, and we need them on site by 16 March 2026. Can you send a quote this week? Thanks, Dana Whitfield, Facilities Engineering",
+  "customer_name": "Dana Whitfield",
+  "sku": "PUMP-X200",
+  "quantity": 3,
+  "region": "US-NE",
+  "delivery_date": "2026-03-16",
+  "discount_request_pct": null,
+  "uncertain_fields": [],
+  "conflicts": [],
+  "source": "fixture"
+}

@@ -1,0 +1,10 @@
+[
+  {"evidence_id": "PRICE-2026-Q1", "sku": "PUMP-X200",     "unit_price_usd": "4750.00", "region": "US-NE", "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "PUMP-X150",     "unit_price_usd": "3350.00", "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "SEAL-MK200",    "unit_price_usd": "335.00",  "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "VALVE-BV50",    "unit_price_usd": "198.00",  "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "VALVE-GV80",    "unit_price_usd": "690.00",  "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "MOTOR-M75",     "unit_price_usd": "1460.00", "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "MOTOR-M15",     "unit_price_usd": "2390.00", "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"},
+  {"evidence_id": "PRICE-2026-Q1", "sku": "STRAINER-BS30", "unit_price_usd": "555.00",  "region": "ALL",   "effective_from": "2026-01-01", "effective_to": null, "status": "active"}
+]

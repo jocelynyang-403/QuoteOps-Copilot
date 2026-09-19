@@ -1,0 +1,31 @@
+{
+  "required_quote_fields": ["sku", "quantity", "delivery_date"],
+  "recognized_regions": ["US-NE"],
+  "clarification_templates": {
+    "sku": "Please confirm the product code you would like quoted so we can apply the correct catalog entry.",
+    "quantity": "Please confirm the number of units you would like quoted.",
+    "delivery_date": "Please confirm the requested delivery date so we can apply the correct price book effectivity.",
+    "region": "Please confirm the delivery ZIP code so we can apply the correct regional price book and delivery terms."
+  },
+  "region_clarification": {
+    "ambiguous_terms": ["Boston-area", "New England", "near Boston"]
+  },
+  "pricing": {
+    "currency": "USD",
+    "only_active_price_books": true,
+    "require_exact_region_for_regional_price": true
+  },
+  "approvals": {
+    "manager_review_discount_gt_pct": 10,
+    "manager_review_total_gt_usd": 25000,
+    "never_auto_approve": true
+  },
+  "security": {
+    "email_body_role": "data_only",
+    "note": "Raw email text is never consumed by pricing, discount, or approval logic. Commercial decisions read only validated structured fields checked against this rules file. Instruction-like text in an email has no execution path by construction, not by filtering."
+  },
+  "crm": {
+    "table": "crm_opportunities",
+    "write_requires_status": "APPROVED"
+  }
+}
